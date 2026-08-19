@@ -4,12 +4,14 @@ import { Model, Types } from 'mongoose';
 import { Moi, MoiDocument } from './schemas/moi.schema';
 import { CreateMoiDto } from './dto/create-moi.dto';
 import { UpdateMoiDto } from './dto/update-moi.dto';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class MoiService {
   constructor(
     @InjectModel(Moi.name)
     private readonly moiModel: Model<MoiDocument>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   findAll(userId: string): Promise<MoiDocument[]> {
@@ -29,11 +31,21 @@ export class MoiService {
     return moi;
   }
 
-  create(userId: string, dto: CreateMoiDto): Promise<MoiDocument> {
-    return this.moiModel.create({
+  async create(userId: string, dto: CreateMoiDto): Promise<MoiDocument> {
+    const moi = await this.moiModel.create({
       ...dto,
       userId: new Types.ObjectId(userId),
     });
+
+    const message =
+      moi.type === 'money'
+        ? `New money contribution recorded (₹${moi.amount})`
+        : `New gift contribution recorded (${moi.giftName ?? 'gift'})`;
+    await this.notificationService
+      .create(userId, { type: 'moi', message, link: '/moi' })
+      .catch(() => undefined);
+
+    return moi;
   }
 
   async update(

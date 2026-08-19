@@ -6,6 +6,7 @@ export class UserResponseDto {
   name: string;
   email: string;
   phone?: string;
+  avatar?: string;
   createdAt: Date;
 
   static fromDocument(user: UserDocument): UserResponseDto {
@@ -14,6 +15,7 @@ export class UserResponseDto {
       name: user.name,
       email: user.email,
       phone: user.phone,
+      avatar: user.avatar,
       createdAt: (user as unknown as { createdAt: Date }).createdAt,
     };
   }

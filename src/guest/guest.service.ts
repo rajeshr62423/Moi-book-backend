@@ -4,12 +4,14 @@ import { Model, Types } from 'mongoose';
 import { Guest, GuestDocument } from './schemas/guest.schema';
 import { CreateGuestDto } from './dto/create-guest.dto';
 import { UpdateGuestDto } from './dto/update-guest.dto';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class GuestService {
   constructor(
     @InjectModel(Guest.name)
     private readonly guestModel: Model<GuestDocument>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   findAll(userId: string): Promise<GuestDocument[]> {
@@ -41,6 +43,13 @@ export class GuestService {
     id: string,
     dto: UpdateGuestDto,
   ): Promise<GuestDocument> {
+    const previous = await this.guestModel
+      .findOne({ _id: id, userId: new Types.ObjectId(userId) })
+      .exec();
+    if (!previous) {
+      throw new NotFoundException('Guest not found');
+    }
+
     const guest = await this.guestModel
       .findOneAndUpdate({ _id: id, userId: new Types.ObjectId(userId) }, dto, {
         new: true,
@@ -49,6 +58,17 @@ export class GuestService {
     if (!guest) {
       throw new NotFoundException('Guest not found');
     }
+
+    if (dto.status && dto.status !== previous.status) {
+      await this.notificationService
+        .create(userId, {
+          type: 'guests',
+          message: `${guest.name} RSVP'd as ${dto.status}`,
+          link: '/guests',
+        })
+        .catch(() => undefined);
+    }
+
     return guest;
   }
 

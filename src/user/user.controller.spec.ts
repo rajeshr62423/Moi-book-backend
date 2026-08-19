@@ -13,6 +13,7 @@ describe('UserController', () => {
           provide: UserService,
           useValue: {
             findById: jest.fn(),
+            updateProfile: jest.fn(),
           },
         },
       ],

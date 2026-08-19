@@ -32,6 +32,7 @@ describe('AuthService', () => {
             findByEmailWithPassword: jest.fn(),
             findById: jest.fn(),
             findByIdWithRefreshToken: jest.fn(),
+            findByIdWithPassword: jest.fn(),
             create: jest.fn(),
             setRefreshTokenHash: jest.fn(),
             setResetToken: jest.fn(),
@@ -109,6 +110,35 @@ describe('AuthService', () => {
       expect(result.user.email).toBe(mockUser.email);
       // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.Mocked method reference, not a real unbound call
       expect(userService.setRefreshTokenHash).toHaveBeenCalledWith(
+        'user-id-1',
+        expect.any(String),
+      );
+    });
+  });
+
+  describe('changePassword', () => {
+    it('throws when the current password is wrong', async () => {
+      userService.findByIdWithPassword.mockResolvedValue(mockUser as never);
+
+      await expect(
+        service.changePassword('user-id-1', {
+          currentPassword: 'WrongPass1',
+          newPassword: 'NewPassword1',
+        }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('updates the password hash when the current password is correct', async () => {
+      userService.findByIdWithPassword.mockResolvedValue(mockUser as never);
+      userService.updatePassword.mockResolvedValue(undefined);
+
+      await service.changePassword('user-id-1', {
+        currentPassword: 'Password1',
+        newPassword: 'NewPassword1',
+      });
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.Mocked method reference, not a real unbound call
+      expect(userService.updatePassword).toHaveBeenCalledWith(
         'user-id-1',
         expect.any(String),
       );

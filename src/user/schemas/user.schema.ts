@@ -24,6 +24,10 @@ export class User {
   @Prop({ trim: true })
   phone?: string;
 
+  // Cloudinary URL (uploaded via POST /uploads before saving the profile).
+  @Prop()
+  avatar?: string;
+
   // Never selected by default; auth.service explicitly requests it with
   // `.select('+passwordHash')` when it needs to compare a login attempt.
   @Prop({ required: true, select: false })

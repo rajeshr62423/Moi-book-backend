@@ -16,6 +16,7 @@ describe('UserService', () => {
             create: jest.fn(),
             findOne: jest.fn(),
             findById: jest.fn(),
+            findByIdAndUpdate: jest.fn(),
             updateOne: jest.fn(),
           },
         },

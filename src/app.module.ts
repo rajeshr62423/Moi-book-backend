@@ -17,6 +17,7 @@ import { SearchModule } from './search/search.module';
 import { TemplateModule } from './template/template.module';
 import { MailModule } from './mail/mail.module';
 import { UploadModule } from './upload/upload.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { UploadModule } from './upload/upload.module';
     TemplateModule,
     MailModule,
     UploadModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

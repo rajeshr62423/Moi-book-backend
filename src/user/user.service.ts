@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 export interface CreateUserInput {
   name: string;
@@ -43,6 +44,11 @@ export class UserService {
     return this.userModel.findById(id).select('+refreshTokenHash').exec();
   }
 
+  /** Includes the normally-hidden passwordHash, needed only to verify a change-password attempt. */
+  findByIdWithPassword(id: string): Promise<UserDocument | null> {
+    return this.userModel.findById(id).select('+passwordHash').exec();
+  }
+
   async setRefreshTokenHash(
     userId: string,
     refreshTokenHash: string | null,
@@ -75,6 +81,27 @@ export class UserService {
       })
       .select('+resetPasswordTokenHash +resetPasswordExpires')
       .exec();
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserDocument> {
+    if (dto.email) {
+      const existing = await this.findByEmail(dto.email);
+      if (existing && existing._id.toString() !== userId) {
+        throw new ConflictException('An account with this email already exists');
+      }
+    }
+
+    const user = await this.userModel
+      .findByIdAndUpdate(
+        userId,
+        { ...dto, ...(dto.email ? { email: dto.email.toLowerCase() } : {}) },
+        { new: true },
+      )
+      .exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   async updatePassword(userId: string, passwordHash: string): Promise<void> {

@@ -15,6 +15,7 @@ import { MailService } from '../mail/mail.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 const SALT_ROUNDS = 10;
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
@@ -135,6 +136,21 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.newPassword, SALT_ROUNDS);
     await this.userService.updatePassword(user._id.toString(), passwordHash);
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
+    const user = await this.userService.findByIdWithPassword(userId);
+    if (!user) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const matches = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!matches) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, SALT_ROUNDS);
+    await this.userService.updatePassword(userId, passwordHash);
   }
 
   private async issueTokens(user: UserDocument): Promise<AuthResult> {
