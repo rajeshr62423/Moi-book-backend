@@ -19,6 +19,7 @@ import { TemplateModule } from './template/template.module';
 import { MailModule } from './mail/mail.module';
 import { UploadModule } from './upload/upload.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     MailModule,
     UploadModule,
     DashboardModule,
+    ReportsModule,
   ],
   controllers: [AppController, WellKnownController],
   providers: [AppService],
