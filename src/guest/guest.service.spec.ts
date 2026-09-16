@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { GuestService } from './guest.service';
 import { Guest } from './schemas/guest.schema';
+import { Event } from '../event/schemas/event.schema';
 import { NotificationService } from '../notification/notification.service';
 
 const USER_ID = '507f1f77bcf86cd799439011';
@@ -30,7 +31,18 @@ describe('GuestService', () => {
       providers: [
         GuestService,
         { provide: getModelToken(Guest.name), useValue: model },
-        { provide: NotificationService, useValue: { create: jest.fn().mockResolvedValue(undefined) } },
+        {
+          provide: getModelToken(Event.name),
+          useValue: {
+            find: jest
+              .fn()
+              .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }),
+          },
+        },
+        {
+          provide: NotificationService,
+          useValue: { create: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 
@@ -44,12 +56,18 @@ describe('GuestService', () => {
 
   describe('update', () => {
     it('creates a notification when the RSVP status changes', async () => {
-      model.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue({ status: 'pending' }) });
+      model.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ status: 'pending' }),
+      });
       model.findOneAndUpdate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue({ name: 'Priya', status: 'attending' }),
+        exec: jest
+          .fn()
+          .mockResolvedValue({ name: 'Priya', status: 'attending' }),
       });
 
-      await service.update(USER_ID, 'guest-1', { status: 'attending' } as never);
+      await service.update(USER_ID, 'guest-1', {
+        status: 'attending',
+      } as never);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.Mocked method reference, not a real unbound call
       expect(notificationService.create).toHaveBeenCalledWith(USER_ID, {
@@ -60,24 +78,32 @@ describe('GuestService', () => {
     });
 
     it('does not notify when the status is unchanged', async () => {
-      model.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue({ status: 'attending' }) });
+      model.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ status: 'attending' }),
+      });
       model.findOneAndUpdate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue({ name: 'Priya', status: 'attending' }),
+        exec: jest
+          .fn()
+          .mockResolvedValue({ name: 'Priya', status: 'attending' }),
       });
 
-      await service.update(USER_ID, 'guest-1', { status: 'attending' } as never);
+      await service.update(USER_ID, 'guest-1', {
+        status: 'attending',
+      } as never);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.Mocked method reference, not a real unbound call
       expect(notificationService.create).not.toHaveBeenCalled();
     });
 
     it('does not notify when the dto has no status field', async () => {
-      model.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue({ status: 'pending' }) });
+      model.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ status: 'pending' }),
+      });
       model.findOneAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({ name: 'Priya', status: 'pending' }),
       });
 
-      await service.update(USER_ID, 'guest-1', { phone: '999' } as never);
+      await service.update(USER_ID, 'guest-1', { phone: '999' });
 
       // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.Mocked method reference, not a real unbound call
       expect(notificationService.create).not.toHaveBeenCalled();

@@ -27,7 +27,13 @@ export class GuestController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<GuestResponseDto[]> {
     const guests = await this.guestService.findAll(user.userId);
-    return guests.map((guest) => GuestResponseDto.fromDocument(guest));
+    const eventDates = await this.guestService.eventDatesFor(guests);
+    return guests.map((guest) =>
+      GuestResponseDto.fromDocument(
+        guest,
+        eventDates.get(guest.eventId.toString()),
+      ),
+    );
   }
 
   @Get(':id')
@@ -36,7 +42,11 @@ export class GuestController {
     @Param('id') id: string,
   ): Promise<GuestResponseDto> {
     const guest = await this.guestService.findOne(user.userId, id);
-    return GuestResponseDto.fromDocument(guest);
+    const eventDates = await this.guestService.eventDatesFor([guest]);
+    return GuestResponseDto.fromDocument(
+      guest,
+      eventDates.get(guest.eventId.toString()),
+    );
   }
 
   @Post()
@@ -46,7 +56,11 @@ export class GuestController {
     @Body() dto: CreateGuestDto,
   ): Promise<GuestResponseDto> {
     const guest = await this.guestService.create(user.userId, dto);
-    return GuestResponseDto.fromDocument(guest);
+    const eventDates = await this.guestService.eventDatesFor([guest]);
+    return GuestResponseDto.fromDocument(
+      guest,
+      eventDates.get(guest.eventId.toString()),
+    );
   }
 
   @Patch(':id')
@@ -57,7 +71,11 @@ export class GuestController {
     @Body() dto: UpdateGuestDto,
   ): Promise<GuestResponseDto> {
     const guest = await this.guestService.update(user.userId, id, dto);
-    return GuestResponseDto.fromDocument(guest);
+    const eventDates = await this.guestService.eventDatesFor([guest]);
+    return GuestResponseDto.fromDocument(
+      guest,
+      eventDates.get(guest.eventId.toString()),
+    );
   }
 
   @Delete(':id')
