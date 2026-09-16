@@ -1,8 +1,7 @@
 import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
+import { AccountId } from '../team/account-id.decorator';
 import { ReportsService } from './reports.service';
 import { ReportFilterDto } from './dto/report-filter.dto';
 import { ReportQueryDto } from './dto/report-query.dto';
@@ -22,12 +21,12 @@ export class ReportsController {
 
   @Get()
   async findAll(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Query() query: ReportQueryDto,
     @Res() res: Response,
   ): Promise<void> {
     const { records, summary, meta } = await this.reportsService.getRecords(
-      user.userId,
+      accountId,
       query,
     );
     res.status(200).json({
@@ -42,12 +41,12 @@ export class ReportsController {
 
   @Get('export/excel')
   async exportExcel(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Query() query: ReportFilterDto,
     @Res() res: Response,
   ): Promise<void> {
     const { records, summary } = await this.reportsService.getRecordsForExport(
-      user.userId,
+      accountId,
       query,
     );
     const buffer = await this.reportsService.buildExcelBuffer(
@@ -67,12 +66,12 @@ export class ReportsController {
 
   @Get('export/pdf')
   async exportPdf(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Query() query: ReportFilterDto,
     @Res() res: Response,
   ): Promise<void> {
     const { records, summary } = await this.reportsService.getRecordsForExport(
-      user.userId,
+      accountId,
       query,
     );
     const buffer = await this.reportsService.buildPdfBuffer(

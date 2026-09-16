@@ -9,9 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { AccountId } from '../team/account-id.decorator';
 import { ApiMessage } from '../common/decorators/api-message.decorator';
-import type { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { GuestService } from './guest.service';
 import { CreateGuestDto } from './dto/create-guest.dto';
 import { UpdateGuestDto } from './dto/update-guest.dto';
@@ -23,10 +22,8 @@ export class GuestController {
   constructor(private readonly guestService: GuestService) {}
 
   @Get()
-  async findAll(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<GuestResponseDto[]> {
-    const guests = await this.guestService.findAll(user.userId);
+  async findAll(@AccountId() accountId: string): Promise<GuestResponseDto[]> {
+    const guests = await this.guestService.findAll(accountId);
     const eventDates = await this.guestService.eventDatesFor(guests);
     return guests.map((guest) =>
       GuestResponseDto.fromDocument(
@@ -38,10 +35,10 @@ export class GuestController {
 
   @Get(':id')
   async findOne(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Param('id') id: string,
   ): Promise<GuestResponseDto> {
-    const guest = await this.guestService.findOne(user.userId, id);
+    const guest = await this.guestService.findOne(accountId, id);
     const eventDates = await this.guestService.eventDatesFor([guest]);
     return GuestResponseDto.fromDocument(
       guest,
@@ -52,10 +49,10 @@ export class GuestController {
   @Post()
   @ApiMessage('Guest added successfully')
   async create(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Body() dto: CreateGuestDto,
   ): Promise<GuestResponseDto> {
-    const guest = await this.guestService.create(user.userId, dto);
+    const guest = await this.guestService.create(accountId, dto);
     const eventDates = await this.guestService.eventDatesFor([guest]);
     return GuestResponseDto.fromDocument(
       guest,
@@ -66,11 +63,11 @@ export class GuestController {
   @Patch(':id')
   @ApiMessage('Guest updated successfully')
   async update(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Param('id') id: string,
     @Body() dto: UpdateGuestDto,
   ): Promise<GuestResponseDto> {
-    const guest = await this.guestService.update(user.userId, id, dto);
+    const guest = await this.guestService.update(accountId, id, dto);
     const eventDates = await this.guestService.eventDatesFor([guest]);
     return GuestResponseDto.fromDocument(
       guest,
@@ -81,10 +78,10 @@ export class GuestController {
   @Delete(':id')
   @ApiMessage('Guest deleted successfully')
   async remove(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Param('id') id: string,
   ): Promise<null> {
-    await this.guestService.remove(user.userId, id);
+    await this.guestService.remove(accountId, id);
     return null;
   }
 }

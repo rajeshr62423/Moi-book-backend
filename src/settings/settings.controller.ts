@@ -1,8 +1,7 @@
 import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { AccountId } from '../team/account-id.decorator';
 import { ApiMessage } from '../common/decorators/api-message.decorator';
-import type { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { SettingsService } from './settings.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { SettingsResponseDto } from './dto/settings-response.dto';
@@ -13,8 +12,8 @@ export class SettingsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async me(@CurrentUser() authUser: AuthenticatedUser): Promise<SettingsResponseDto> {
-    const settings = await this.settingsService.getOrCreate(authUser.userId);
+  async me(@AccountId() accountId: string): Promise<SettingsResponseDto> {
+    const settings = await this.settingsService.getOrCreate(accountId);
     return SettingsResponseDto.fromDocument(settings);
   }
 
@@ -22,10 +21,10 @@ export class SettingsController {
   @Patch('me')
   @ApiMessage('Preferences updated successfully')
   async updateMe(
-    @CurrentUser() authUser: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Body() dto: UpdateSettingsDto,
   ): Promise<SettingsResponseDto> {
-    const settings = await this.settingsService.update(authUser.userId, dto);
+    const settings = await this.settingsService.update(accountId, dto);
     return SettingsResponseDto.fromDocument(settings);
   }
 }

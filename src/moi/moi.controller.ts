@@ -9,9 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { AccountId } from '../team/account-id.decorator';
 import { ApiMessage } from '../common/decorators/api-message.decorator';
-import type { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { MoiService } from './moi.service';
 import { CreateMoiDto } from './dto/create-moi.dto';
 import { UpdateMoiDto } from './dto/update-moi.dto';
@@ -23,50 +22,48 @@ export class MoiController {
   constructor(private readonly moiService: MoiService) {}
 
   @Get()
-  async findAll(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<MoiResponseDto[]> {
-    const items = await this.moiService.findAll(user.userId);
+  async findAll(@AccountId() accountId: string): Promise<MoiResponseDto[]> {
+    const items = await this.moiService.findAll(accountId);
     return items.map((item) => MoiResponseDto.fromDocument(item));
   }
 
   @Get(':id')
   async findOne(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Param('id') id: string,
   ): Promise<MoiResponseDto> {
-    const item = await this.moiService.findOne(user.userId, id);
+    const item = await this.moiService.findOne(accountId, id);
     return MoiResponseDto.fromDocument(item);
   }
 
   @Post()
   @ApiMessage('Moi contribution saved successfully')
   async create(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Body() dto: CreateMoiDto,
   ): Promise<MoiResponseDto> {
-    const item = await this.moiService.create(user.userId, dto);
+    const item = await this.moiService.create(accountId, dto);
     return MoiResponseDto.fromDocument(item);
   }
 
   @Patch(':id')
   @ApiMessage('Moi contribution updated successfully')
   async update(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Param('id') id: string,
     @Body() dto: UpdateMoiDto,
   ): Promise<MoiResponseDto> {
-    const item = await this.moiService.update(user.userId, id, dto);
+    const item = await this.moiService.update(accountId, id, dto);
     return MoiResponseDto.fromDocument(item);
   }
 
   @Delete(':id')
   @ApiMessage('Moi contribution deleted successfully')
   async remove(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Param('id') id: string,
   ): Promise<null> {
-    await this.moiService.remove(user.userId, id);
+    await this.moiService.remove(accountId, id);
     return null;
   }
 }

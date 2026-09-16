@@ -50,8 +50,10 @@ describe('GuestController', () => {
       new Map([[eventId.toString(), '2000-01-01']]),
     );
 
-    const result = await controller.findAll({ userId: 'u1' } as never);
+    const result = await controller.findAll('account-1');
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.Mocked method reference, not a real unbound call
+    expect(service.findAll).toHaveBeenCalledWith('account-1');
     // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.Mocked method reference, not a real unbound call
     expect(service.eventDatesFor).toHaveBeenCalledWith([guest]);
     expect(result[0].rsvpOverdue).toBe(true);

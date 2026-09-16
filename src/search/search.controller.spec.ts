@@ -6,7 +6,7 @@ describe('SearchController', () => {
   let controller: SearchController;
   let service: jest.Mocked<SearchService>;
 
-  const authUser = { userId: 'user-1', email: 'arun@example.com' };
+  const accountId = 'user-1';
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,17 +28,19 @@ describe('SearchController', () => {
         { type: 'event', id: 'e1', title: 'Wedding', link: '/events' },
       ]);
 
-      const result = await controller.search(authUser as never, 'wedding');
+      const result = await controller.search(accountId, 'wedding');
 
       // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.Mocked method reference, not a real unbound call
       expect(service.search).toHaveBeenCalledWith('user-1', 'wedding');
-      expect(result).toEqual({ items: [{ type: 'event', id: 'e1', title: 'Wedding', link: '/events' }] });
+      expect(result).toEqual({
+        items: [{ type: 'event', id: 'e1', title: 'Wedding', link: '/events' }],
+      });
     });
 
     it('defaults to an empty string when no q param is given', async () => {
       service.search.mockResolvedValue([]);
 
-      await controller.search(authUser as never, undefined);
+      await controller.search(accountId, undefined);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.Mocked method reference, not a real unbound call
       expect(service.search).toHaveBeenCalledWith('user-1', '');

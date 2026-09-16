@@ -1,7 +1,6 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
+import { AccountId } from '../team/account-id.decorator';
 import { DashboardService } from './dashboard.service';
 import { DashboardSummaryDto } from './dto/dashboard-summary.dto';
 
@@ -11,7 +10,7 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('summary')
-  getSummary(@CurrentUser() user: AuthenticatedUser): Promise<DashboardSummaryDto> {
-    return this.dashboardService.getSummary(user.userId);
+  getSummary(@AccountId() accountId: string): Promise<DashboardSummaryDto> {
+    return this.dashboardService.getSummary(accountId);
   }
 }

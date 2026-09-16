@@ -3,6 +3,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { AccountContextInterceptor } from './team/account-context.interceptor';
+import { TeamService } from './team/team.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,7 +22,10 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalInterceptors(new ResponseInterceptor(app.get(Reflector)));
+  app.useGlobalInterceptors(
+    new AccountContextInterceptor(app.get(TeamService)),
+    new ResponseInterceptor(app.get(Reflector)),
+  );
   app.useGlobalFilters(new HttpExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000);

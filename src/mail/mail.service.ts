@@ -50,8 +50,39 @@ export class MailService {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      this.logger.error(`Failed to send password reset email to ${to}: ${message}`);
+      this.logger.error(
+        `Failed to send password reset email to ${to}: ${message}`,
+      );
       throw new Error('Could not send password reset email');
+    }
+  }
+
+  async sendTeamInviteEmail(
+    to: string,
+    ownerName: string,
+    inviteLink: string,
+  ): Promise<void> {
+    try {
+      await this.transporter.sendMail({
+        from: this.fromAddress,
+        to,
+        subject: `${ownerName} invited you to their DigiMoiBook team`,
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:auto;">
+            <h2 style="color:#5B4330;">You've been invited</h2>
+            <p><strong>${ownerName}</strong> invited you to join their DigiMoiBook team and help plan their celebrations together. This invite expires in 7 days.</p>
+            <p><a href="${inviteLink}" style="display:inline-block;padding:10px 20px;background:#C99132;color:#fff;border-radius:8px;text-decoration:none;">Accept Invite</a></p>
+            <p>If you weren't expecting this, you can safely ignore this email.</p>
+          </div>
+        `,
+        text: `${ownerName} invited you to join their DigiMoiBook team: ${inviteLink} (expires in 7 days)`,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `Failed to send team invite email to ${to}: ${message}`,
+      );
+      throw new Error('Could not send team invite email');
     }
   }
 }

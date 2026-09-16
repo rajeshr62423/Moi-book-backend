@@ -1,10 +1,22 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { AccountId } from '../team/account-id.decorator';
 import { ApiMessage } from '../common/decorators/api-message.decorator';
-import type { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { NotificationService } from './notification.service';
-import { NotificationListResponseDto, NotificationResponseDto } from './dto/notification-response.dto';
+import {
+  NotificationListResponseDto,
+  NotificationResponseDto,
+} from './dto/notification-response.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('notifications')
@@ -12,33 +24,45 @@ export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
   @Get()
-  async findAll(@CurrentUser() user: AuthenticatedUser): Promise<NotificationListResponseDto> {
-    const { items, unreadCount } = await this.notificationService.listForUser(user.userId);
-    return { items: items.map(NotificationResponseDto.fromDocument), unreadCount };
+  async findAll(
+    @AccountId() accountId: string,
+  ): Promise<NotificationListResponseDto> {
+    const { items, unreadCount } =
+      await this.notificationService.listForUser(accountId);
+    return {
+      items: items.map((item) => NotificationResponseDto.fromDocument(item)),
+      unreadCount,
+    };
   }
 
   @Patch(':id/read')
   @ApiMessage('Notification marked as read')
   async markRead(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Param('id') id: string,
   ): Promise<NotificationResponseDto> {
-    const notification = await this.notificationService.markAsRead(user.userId, id);
+    const notification = await this.notificationService.markAsRead(
+      accountId,
+      id,
+    );
     return NotificationResponseDto.fromDocument(notification);
   }
 
   @Post('read-all')
   @HttpCode(HttpStatus.OK)
   @ApiMessage('All notifications marked as read')
-  async markAllRead(@CurrentUser() user: AuthenticatedUser): Promise<null> {
-    await this.notificationService.markAllAsRead(user.userId);
+  async markAllRead(@AccountId() accountId: string): Promise<null> {
+    await this.notificationService.markAllAsRead(accountId);
     return null;
   }
 
   @Delete(':id')
   @ApiMessage('Notification deleted')
-  async remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string): Promise<null> {
-    await this.notificationService.remove(user.userId, id);
+  async remove(
+    @AccountId() accountId: string,
+    @Param('id') id: string,
+  ): Promise<null> {
+    await this.notificationService.remove(accountId, id);
     return null;
   }
 }

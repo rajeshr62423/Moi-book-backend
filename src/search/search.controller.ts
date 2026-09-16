@@ -1,7 +1,6 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
+import { AccountId } from '../team/account-id.decorator';
 import { SearchService } from './search.service';
 import { SearchResponseDto } from './dto/search-result.dto';
 
@@ -12,10 +11,10 @@ export class SearchController {
 
   @Get()
   async search(
-    @CurrentUser() user: AuthenticatedUser,
+    @AccountId() accountId: string,
     @Query('q') q?: string,
   ): Promise<SearchResponseDto> {
-    const items = await this.searchService.search(user.userId, q ?? '');
+    const items = await this.searchService.search(accountId, q ?? '');
     return { items };
   }
 }

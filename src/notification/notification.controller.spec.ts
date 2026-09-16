@@ -6,7 +6,7 @@ describe('NotificationController', () => {
   let controller: NotificationController;
   let service: jest.Mocked<NotificationService>;
 
-  const authUser = { userId: 'user-1', email: 'arun@example.com' };
+  const accountId = 'user-1';
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -39,7 +39,7 @@ describe('NotificationController', () => {
           {
             _id: { toString: () => 'n1' },
             type: 'guests',
-            message: 'Priya RSVP\'d as attending',
+            message: "Priya RSVP'd as attending",
             link: '/guests',
             read: false,
             createdAt: new Date('2026-01-01'),
@@ -48,10 +48,14 @@ describe('NotificationController', () => {
         unreadCount: 1,
       });
 
-      const result = await controller.findAll(authUser as never);
+      const result = await controller.findAll(accountId);
 
       expect(result.unreadCount).toBe(1);
-      expect(result.items[0]).toMatchObject({ id: 'n1', type: 'guests', read: false });
+      expect(result.items[0]).toMatchObject({
+        id: 'n1',
+        type: 'guests',
+        read: false,
+      });
       // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.Mocked method reference, not a real unbound call
       expect(service.listForUser).toHaveBeenCalledWith('user-1');
     });

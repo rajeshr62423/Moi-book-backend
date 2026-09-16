@@ -20,6 +20,7 @@ import { MailModule } from './mail/mail.module';
 import { UploadModule } from './upload/upload.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ReportsModule } from './reports/reports.module';
+import { TeamModule } from './team/team.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ReportsModule } from './reports/reports.module';
     UploadModule,
     DashboardModule,
     ReportsModule,
+    TeamModule,
   ],
   controllers: [AppController, WellKnownController],
   providers: [AppService],
